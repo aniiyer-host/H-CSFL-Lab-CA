@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SQLi Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <a href="index.html" class="btn">← Back</a>
+    <h1 style="margin-top:14px">Input Validation & SQL Injection (simulated)</h1>
+
+    <div class="demo-wrap">
+      <section class="panel">
+        <h2>Vulnerable (string concatenation)</h2>
+        <label>Search query</label>
+        <input id="q_v" type="text" placeholder="Enter name e.g. alice">
+        <div class="controls"><button class="btn primary" onclick="runVuln()">Run Query</button></div>
+        <div id="v_out" class="code-box" style="margin-top:10px"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Secure (sanitization / parameterized simulated)</h2>
+        <label>Search query</label>
+        <input id="q_s" type="text" placeholder="Enter name e.g. alice">
+        <div class="controls"><button class="btn primary" onclick="runSafe()">Run Safe Query</button></div>
+        <div id="s_out" class="code-box" style="margin-top:10px"></div>
+      </section>
+    </div>
+
+    <div class="panel" style="margin-top:12px">
+      <h2>Dataset (simulated)</h2>
+      <div id="db" class="code-box">["alice","bob","carol"]</div>
+      <div class="explainer">Type an input like <code>'; DROP TABLE users; --</code> to watch what a naive concatenation would produce. The safe path removes dangerous characters / uses parameterized approach (simulated here).</div>
+    </div>
+  </main>
+
+<script>
+const DB = ['alice','bob','carol'];
+
+function runVuln(){
+  const q = document.getElementById('q_v').value;
+  const sql = "SELECT * FROM users WHERE name = '" + q + "'";
+  // simulate executing: if injection contains DROP simulate catastrophic output
+  let result = [];
+  if(/DROP\s+TABLE/i.test(q)){
+    result = ['ERROR: simulated DROP TABLE executed — dataset removed'];
+    // pretend DB lost (for demo only)
+  } else {
+    result = DB.filter(x => x === q);
+  }
+  document.getElementById('v_out').textContent = sql + '\n\nResult:\n' + JSON.stringify(result, null, 2);
+}
+
+function runSafe(){
+  const q = document.getElementById('q_s').value;
+  // sanitize by removing quotes and meta characters (demo only)
+  const safe = q.replace(/[\"'`;--]/g, "");
+  const simulatedParam = safe; // in real server side use prepared statements
+  const sql = "SELECT * FROM users WHERE name = $1  -- params: ['"+simulatedParam+"']";
+  const result = DB.filter(x => x === simulatedParam);
+  document.getElementById('s_out').textContent = sql + '\n\nResult:\n' + JSON.stringify(result, null, 2);
+}
+</script>
+</body>
+</html>

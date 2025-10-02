@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CSRF Demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <a href="index.html" class="btn">← Back</a>
+    <h1 style="margin-top:14px">CSRF Simulation</h1>
+
+    <div class="demo-wrap">
+      <section class="panel">
+        <h2>Vulnerable (no token)</h2>
+        <p>Transfer $50 to Bob</p>
+        <div class="controls"><button class="btn primary" onclick="transfer(false)">Transfer (No Token)</button></div>
+        <div id="out_v" class="code-box" style="margin-top:10px"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Secure (CSRF token required)</h2>
+        <p>Transfer $50 to Bob (requires token)</p>
+        <div class="controls">
+          <button class="btn" onclick="fillToken()">Get CSRF Token</button>
+          <button class="btn primary" onclick="transfer(true)">Transfer (With Token)</button>
+        </div>
+        <div id="out_s" class="code-box" style="margin-top:10px"></div>
+        <div class="explainer">The token below simulates a server-provided CSRF token — in real apps this is issued server-side and verified on POST.</div>
+      </section>
+    </div>
+
+    <div class="panel" style="margin-top:12px">
+      <h2>Notes</h2>
+      <p class="explainer">You can simulate an attack by calling <code>transfer(false)</code> from the console or another page (this mimics a malicious external POST). A real mitigation includes SameSite cookies plus server-side verification of an unpredictable token.</p>
+    </div>
+  </main>
+
+<script>
+// simulated server-side token stored here
+let serverCsrf = null;
+function fillToken(){
+  serverCsrf = Math.random().toString(36).slice(2,12);
+  document.getElementById('out_s').textContent = 'Server-issued CSRF token: ' + serverCsrf;
+}
+
+function transfer(requireToken){
+  if(!requireToken){
+    document.getElementById('out_v').textContent = 'Vulnerable: Transfer succeeded (no CSRF check)';
+    return;
+  }
+  const token = prompt('Enter CSRF token provided by server');
+  if(token === serverCsrf){
+    document.getElementById('out_s').textContent = 'Secure: Transfer succeeded (token valid) ✅';
+  } else {
+    document.getElementById('out_s').textContent = 'Secure: Transfer blocked — invalid CSRF token ❌';
+  }
+}
+</script>
+</body>
+</html>
