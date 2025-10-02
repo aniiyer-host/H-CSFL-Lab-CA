@@ -1,0 +1,88 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CyberSec Demos</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<a href="index.html" class="btn">← Back</a>
+<h1 style="margin-top:14px">Auth Simulation</h1>
+
+<body>
+<label style="margin-top:8px">Username</label>
+<input id="u_plain" type="text" placeholder="alice">
+<label style="margin-top:8px">Password</label>
+<input id="p_plain" type="password" placeholder="password123">
+<div class="controls">
+<button class="btn primary" onclick="storePlain()">Store (Plain)</button>
+</div>
+<div class="explainer"><small>Vulnerable storage shows plaintext passwords — never store raw passwords.</small></div>
+<div id="out_plain" style="margin-top:10px" class="code-box"></div>
+</section>
+
+
+<section class="panel">
+<h2>Secure (bcrypt hash)</h2>
+<label>Username</label>
+<input id="u_hash" type="text" placeholder="alice">
+<label style="margin-top:8px">Password</label>
+<input id="p_hash" type="password" placeholder="password123">
+<div class="controls">
+<button class="btn primary" onclick="storeHashed()">Store (Hash)</button>
+</div>
+<div class="explainer"><small>We hash passwords with bcrypt before storing — hashes are one-way and safer.</small></div>
+<div id="out_hash" style="margin-top:10px" class="code-box"></div>
+</section>
+</div>
+
+
+<section style="margin-top:18px" class="panel">
+<h2>Simulated MFA (TOTP)</h2>
+<p class="explainer">This page simulates enabling MFA by generating a fake secret and verifying a fake code. In production use libraries like otplib/speakeasy and show a QR code.</p>
+<div style="display:flex;gap:12px;align-items:center">
+<button class="btn" onclick="enableMFA()">Enable MFA (generate secret)</button>
+<button class="btn" onclick="verifyMFA()">Verify code</button>
+</div>
+<div id="mfa_out" style="margin-top:10px" class="code-box"></div>
+</section>
+
+
+</main>
+
+
+<script>
+async function storePlain(){
+const u=document.getElementById('u_plain').value||'alice';
+const p=document.getElementById('p_plain').value||'password123';
+// simulate storing in localStorage (vulnerable)
+localStorage.setItem('user_plain', JSON.stringify({user:u,password:p}));
+document.getElementById('out_plain').textContent = JSON.stringify({user:u,password:p}, null, 2);
+}
+
+
+async function storeHashed(){
+const u=document.getElementById('u_hash').value||'alice';
+const p=document.getElementById('p_hash').value||'password123';
+const saltRounds = 10;
+const hash = await bcrypt.hash(p, saltRounds);
+localStorage.setItem('user_hash', JSON.stringify({user:u,password_hash:hash}));
+document.getElementById('out_hash').textContent = JSON.stringify({user:u,password_hash:hash}, null, 2);
+}
+
+
+let simulatedSecret = null;
+function enableMFA(){
+// a mock secret — in real apps use a proper TOTP library+QR
+simulatedSecret = btoa(Math.random().toString()).slice(0,16);
+document.getElementById('mfa_out').textContent = 'MFA secret generated: ' + simulatedSecret + '\n(Use code 123456 for demo verification)';
+}
+function verifyMFA(){
+const code = prompt('Enter MFA code (hint: 123456)');
+if(!simulatedSecret) return alert('Enable MFA first');
+if(code === '123456') document.getElementById('mfa_out').textContent += '\nMFA verified ✅';
+else document.getElementById('mfa_out').textContent += '\nMFA verification failed ❌';
+}
+</script>
+</body>
+</html>

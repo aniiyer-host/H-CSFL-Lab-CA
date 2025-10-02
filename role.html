@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Authorization Demo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="container">
+<a href="index.html" class="btn">← Back</a>
+<h1 style="margin-top:14px">Authorization — Role Based Access Control (RBAC)</h1>
+
+
+<div class="panel">
+<label>Set current role</label>
+<div style="display:flex;gap:8px;margin-top:8px">
+<button class="btn" onclick="setRole('guest')">Guest</button>
+<button class="btn" onclick="setRole('user')">User</button>
+<button class="btn primary" onclick="setRole('admin')">Admin</button>
+<div style="margin-left:auto"><small id="curRole" style="color:var(--muted)">Role: guest</small></div>
+</div>
+<div style="margin-top:16px">
+<button class="btn primary" onclick="deleteUserVuln()">Delete user (Vulnerable)</button>
+<button class="btn" onclick="deleteUserSafe()">Delete user (Secure)</button>
+</div>
+<div id="role_out" style="margin-top:12px" class="code-box"></div>
+<div class="explainer" style="margin-top:12px"><small>Vulnerable button performs action with no role check; secure button checks role before acting.</small></div>
+</div>
+</main>
+
+
+<script>
+let currentRole = 'guest';
+function setRole(r){currentRole=r;document.getElementById('curRole').textContent='Role: '+r}
+
+
+function deleteUserVuln(){
+// No role check — vulnerable
+document.getElementById('role_out').textContent = 'Vulnerable: user deleted by ' + currentRole + ' (no checks)';
+}
+
+
+function deleteUserSafe(){
+// RBAC enforcement
+if(currentRole !== 'admin'){
+document.getElementById('role_out').textContent = 'Secure: Access denied — admin role required (current: '+currentRole+')';
+return;
+}
+document.getElementById('role_out').textContent = 'Secure: user deleted by admin ✅';
+}
+</script>
+</body>
+</html>
